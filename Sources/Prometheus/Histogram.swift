@@ -127,7 +127,7 @@ extension Histogram: PrometheusMetric {
             buffer.append(contentsOf: "\(bucket.value.bucketRepresentation)".utf8)
             buffer.append(UInt8(ascii: #"""#))
             buffer.append(contentsOf: #"} "#.utf8)
-            count += bucket.count
+            count += bucket.ownCount
             buffer.append(contentsOf: "\(count)".utf8)
             buffer.append(contentsOf: #"\#n"#.utf8)
         }
