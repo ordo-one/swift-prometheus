@@ -37,12 +37,12 @@ public final class Histogram<Value: Bucketable>: Sendable {
             @usableFromInline
             let value: Value
             @usableFromInline
-            var count: Int
+            var ownCount: Int
 
             @usableFromInline
             init(value: Value, count: Int) {
                 self.value = value
-                self.count = count
+                self.ownCount = count
             }
         }
         // NB! buckets now contain only own values (not acc.)
@@ -86,9 +86,8 @@ public final class Histogram<Value: Bucketable>: Sendable {
                 }
             }
 
-            if state.buckets.startIndex <= left,
-               left < state.buckets.endIndex {
-                state.buckets[left].count += 1
+            if left >= state.buckets.startIndex, left < state.buckets.endIndex {
+                state.buckets[left].ownCount += 1
             }
 
             state.sum += value
