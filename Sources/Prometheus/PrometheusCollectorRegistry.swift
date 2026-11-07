@@ -1061,6 +1061,30 @@ public final class PrometheusCollectorRegistry: Sendable {
         }
     }
 
+    /// Reads every registered counter and gauge; histograms are not included.
+    ///
+    /// Values are loaded with relaxed ordering, so series are not read at a single instant.
+    public func snapshot() -> Snapshot {
+        let metrics = self.box.withLockedValue { $0 }
+        var snapshot = Snapshot(counters: [], gauges: [])
+        for metric in metrics.values {
+            switch metric {
+            case .counter(let counterFamily):
+                counterFamily.forEachMetric { counter in
+                    snapshot.counters.append(Sample(name: counter.name, labels: counter.labels, value: counter.value))
+                }
+            case .gauge(let gaugeFamily):
+                gaugeFamily.forEachMetric { gauge in
+                    let value = Double(bitPattern: gauge.atomic.load(ordering: .relaxed))
+                    snapshot.gauges.append(Sample(name: gauge.name, labels: gauge.labels, value: value))
+                }
+            case .durationHistogram, .valueHistogram:
+                break
+            }
+        }
+        return snapshot
+    }
+
     /// Emits all registered metrics in Prometheus text format into the provided buffer.
     ///
     /// Writes directly into the supplied buffer without any internal buffer management or thread synchronization.

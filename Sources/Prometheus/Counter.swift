@@ -83,6 +83,11 @@ public final class Counter: Sendable {
         self.intAtomic.store(0, ordering: .relaxed)
         self.floatAtomic.store(Double.zero.bitPattern, ordering: .relaxed)
     }
+
+    /// The integer and floating-point parts summed.
+    var value: Double {
+        Double(bitPattern: self.floatAtomic.load(ordering: .relaxed)) + Double(self.intAtomic.load(ordering: .relaxed))
+    }
 }
 
 extension Counter: CoreMetrics.CounterHandler {}
